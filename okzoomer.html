@@ -3,7 +3,7 @@
    to make up for it there are black bars filling either the horizontal 
    or vertical difference on both sides.  This code seeks to reposition the 
    video so that the specified corner of the video is in the specified 
-   corner of the container.  It also wants to scale the video 200% while 
+   corner of the container.  It also wants to scale the video while 
    maintaining that constraint.  -->
 <html lang="en">
 <head>
@@ -72,142 +72,87 @@
         <iframe id="kittenVideo" src="https://www.youtube.com/embed/R7vrbiDi0Tc?autoplay=1" frameborder="0" allowfullscreen style="width: 100%; height: 100%;"></iframe>
     </div>
     <script>
-      function computePercentageDifference() {
-          const givenAspectWidth = 16;
-          const givenAspectHeight = 9;
-          const givenAspectRatio = givenAspectWidth / givenAspectHeight;
-          const videoContainer = document.getElementById("videoContainer");
-          const divWidth = videoContainer.offsetWidth;
-          const divHeight = videoContainer.offsetHeight;
-          const divAspectRatio = divWidth / divHeight;
-
-          let x, y;
-          if (divAspectRatio > givenAspectRatio) {
-              // Wider case
-              // 50 because 100 would give us the percentage difference but we are thinking of
-              // this as meaning "how wide is one black bar" so half the difference.
-              x = 50 * divAspectRatio / givenAspectRatio; 
-              y = 0;
-          } else {
-              // Taller case
-              x = 0;
-              y = 50 * givenAspectRatio / divAspectRatio;
-          }
-
-          console.log(`x: ${x} y: ${y}`);
-          return [x, y];
-      }
-
-      function zoom(quadrant) {
-          const video = document.getElementById('kittenVideo');
-          let [x, y] = computePercentageDifference();
-
-          // considering percentagedifference is kind of like what % is a black bar, but 
-          // I'm not sure if that % scales or not with the 200% scaling we do, I think the
-          // logic here should be something like:  
-          // using 'bb' to signify the return value from computePercentageDifference:
-          // top-left,  subtract bb from xy
-          // top-right,  add bb to x, subtract from y
-          // bottom-left, subtract bb from x, add to y
-          // bottom-right, add bb to x and y
-          // These will put the proper corner in the proper corner pre-scaling but may need to be 
-          // adjusted for scaling ... woudl we just scale them the same 200%?  Inquiring minds...
-          let transform;
-          switch (quadrant) {
-              case 'top-left':
-                  transform = `translate(${-x}%, ${-y}%)`;
-                  break;
-              case 'top-right':
-                  transform = `translate(${x}%, ${-y}%)`;
-                  break;
-              case 'bottom-left':
-                  transform = `translate(${-x}%, ${y}%)`;
-                  break;
-              case 'bottom-right':
-                  transform = `translate(${x}%, ${y}%)`;
-                  break;
-              case 'reset':
-                  transform = 'translate(0, 0)';
-                  video.style.width = '100%';
-                  video.style.height = '100%';
-                  break;
-          }
-          // Testing has shown that using scale() does not work but using .width and .height does, thus the above and below.
+          // Testing has shown that using scale() does not work but using .width and .height does
           // Testing /after/ this script was written proved that translation by pixel values does work and may be easier than
           // percentages or otherwise simplify the logic, and should be possible.  
 
-          video.style.transform = transform;
-          if (quadrant !== 'reset') {
-              video.style.width = '200%';
-              video.style.height = '200%';
-          }
+       function computeSizes() {
+        // Given aspect ratio for the video
+        const givenAspectWidth = 16;
+        const givenAspectHeight = 9;
+        const givenAspectRatio = givenAspectWidth / givenAspectHeight;
+
+        const videoContainer = document.getElementById("videoContainer");
+        const divWidth = videoContainer.offsetWidth;
+        const divHeight = videoContainer.offsetHeight;
+        const divAspectRatio = divWidth / divHeight;
+
+        console.log(`Container width: ${divWidth}, height: ${divHeight}, aspect ratio: ${divAspectRatio.toFixed(2)}`);
+        console.log(`Video aspect ratio: ${givenAspectRatio}`);
+
+        let barWidth, barHeight;
+        if (divAspectRatio > givenAspectRatio) {
+          // Wider case: black bars on the sides
+          barWidth = (divWidth - (divHeight * givenAspectRatio)) / 2;
+          barHeight = 0;
+        } else {
+          // Taller case: black bars on top and bottom
+          barWidth = 0;
+          barHeight = (divHeight - (divWidth / givenAspectRatio)) / 2;
+        }
+
+        vidWidth = divWidth - (barWidth * 2);
+        vidHeight = divHeight - (barHeight * 2);
+
+        //Turns out we do need ot account for scaling, this dosdn't belong here, but we'll deal with it after testing.
+        barWidth = barWidth * 2;
+        barHeight = barHeight * 2;
+        vidWidth = vidWidth * 2;
+        vidHeight = vidHeight * 2;
+
+        console.log(`Bars - width: ${barWidth}px, height: ${barHeight}px`);
+        console.log(`Video - width: ${vidWidth}px, height: ${vidHeight}px`);
+        console.log(`Container - width: ${divWidth}px, height: ${divHeight}px`);
+
+        return [barWidth, barHeight, vidWidth, vidHeight, divWidth, divHeight];
       }
-          
+
+      function zoom(quadrant) {
+        const video = document.getElementById('kittenVideo');
+        const [barWidth, barHeight, vidWidth, vidHeight, divWidth, divHeight] = computeSizes();
+        const xDiff = divWidth - vidWidth;  
+        const yDiff = divHeight - vidHeight;
+
+        // Determine the translation needed for each quadrant
+        let transform;
+        switch (quadrant) {
+          case 'top-left':
+              transform = `translate(${-barWidth}px, ${-barHeight}px)`;
+              break;
+          case 'top-right':
+              transform = `translate(${-barWidth+xDiff}px, ${-barHeight}px)`;
+              break;
+          case 'bottom-left':
+              transform = `translate(${-barWidth}px, ${-barHeight+yDiff}px)`;
+              break;
+          case 'bottom-right':
+              transform = `translate(${-barWidth+xDiff}px, ${-barHeight+yDiff}px)`;
+              break;
+          case 'reset':
+              transform = 'translate(0, 0)';
+              video.style.width = '100%';
+              video.style.height = '100%';
+              break;
+        }
+        console.log(`Transform applied: ${transform}`);
+
+        if (quadrant !== 'reset') {
+            video.style.width = '200%';
+            video.style.height = '200%';
+        }
+        video.style.transform = transform;
+      }
+
     </script>
 </body>
 </html>
-<!-- Note to self:  the logic below was closer to working and you described it thusly:
-   I believe the symptoms vary depending on whether the aspect ratio of the web browser is more tall or not.
-
-In this instance, I am testing where the browser is wider and therefore the black bars are on the sides.  In all cases where the browser is wider the Y positon appears correct, but when clicking top left or bottom left, the X position is too far to the left, and when clicking the right buttons, the X position is much further too far to the left.
-
-When the browser is taller and the bars are on top and bottom, the X position seems correct or nearly correct in all four quadrants, and the Y on top left and top right appears correct, but on bottom left and right it's too far up by what appear to be the same amount left and right.
-
-function computePercentageDifference() {
-            const givenAspectWidth = 16;
-            const givenAspectHeight = 9;
-            const givenAspectRatio = givenAspectWidth / givenAspectHeight;
-            const videoContainer = document.getElementById("videoContainer");
-            const divWidth = videoContainer.offsetWidth;
-            const divHeight = videoContainer.offsetHeight;
-            const divAspectRatio = divWidth / divHeight;
-
-            let status, percentageDifference;
-            if (divAspectRatio > givenAspectRatio) {
-                status = "wider";
-                percentageDifference = Math.abs(divAspectRatio / givenAspectRatio - 1) * 50;
-            } else {
-                status = "taller";
-                percentageDifference = Math.abs(givenAspectRatio / divAspectRatio - 1) * 50;
-            }
-
-            console.log(`The div is ${status} than the given aspect ratio (${givenAspectRatio}/${divAspectRatio}).`);
-            console.log(`Percentage difference in the non-matching direction: ${percentageDifference.toFixed(2)}%`);
-            return divAspectRatio > givenAspectRatio ? [percentageDifference, 0] : [0, percentageDifference];
-        }
-
-        // Function to zoom into a specific quadrant of the video or reset
-        function zoom(quadrant) {
-            const video = document.getElementById('kittenVideo');
-            let transform = '';
-            let [x, y] = computePercentageDifference();
-            x = -x; y = -y;
-
-            switch (quadrant) {
-                case 'top-left':
-                    transform = `translate(${x}%, ${y}%)`;
-                    break;
-                case 'top-right':
-                    transform = `translate(${-50 + x}%, ${y}%)`;
-                    break;
-                case 'bottom-left':
-                    transform = `translate(${x}%, ${-50 + y}%)`;
-                    break;
-                case 'bottom-right':
-                    transform = `translate(${-50 + x}%, ${-50 + y}%)`;
-                    break;
-                case 'reset':
-                    transform = 'translate(0, 0)';
-                    video.style.width = '100%';
-                    video.style.height = '100%';
-                    break;
-            }
-
-            video.style.transform = transform;
-            if (quadrant !== 'reset') {
-                video.style.width = '200%';
-                video.style.height = '200%';
-            }
-        }
--->
-
