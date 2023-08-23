@@ -5,18 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kitten Academy Live Stream</title>
     <style>
+        /* Styling for dark mode and layout */
+        body, button {
+            background-color: #333; /* Dark Mode Background */
+            color: white; /* Dark Mode Text Color */
+        }
         body {
             margin: 0;
             display: flex;
             flex-direction: column;
             height: 100vh;
             overflow: hidden;
-            background-color: #1a1a1a; /* Dark Mode Background */
-            color: white; /* Dark Mode Text Color */
         }
         .controls {
             padding: 10px;
-            background-color: #1a1a1a; /* Dark Mode Background */
             display: flex;
             flex-direction: row;
             align-items: center;
@@ -40,8 +42,6 @@
             object-fit: contain;
         }
         button {
-            background-color: #333; /* Dark Mode Button Background */
-            color: white; /* Dark Mode Button Text */
             border: none;
             padding: 5px 10px;
             margin: 5px;
@@ -55,6 +55,7 @@
 </head>
 <body>
     <div class="controls">
+        <!-- Control buttons to zoom into the four quadrants of the video -->
         <button onclick="zoom('top-left')">Top Left</button>
         <button onclick="zoom('top-right')">Top Right</button>
         <button onclick="zoom('bottom-left')">Bottom Left</button>
@@ -65,22 +66,49 @@
         <iframe id="kittenVideo" src="https://www.youtube.com/embed/R7vrbiDi0Tc?autoplay=1" frameborder="0" allowfullscreen style="width: 100%; height: 100%;"></iframe>
     </div>
     <script>
+        // Function to compute the difference between the given aspect ratio and the div's aspect ratio
+        function computePercentageDifference() {
+            const givenAspectWidth = 16;
+            const givenAspectHeight = 9;
+            const givenAspectRatio = givenAspectWidth / givenAspectHeight;
+            const videoContainer = document.getElementById("videoContainer");
+            const divWidth = videoContainer.offsetWidth;
+            const divHeight = videoContainer.offsetHeight;
+            const divAspectRatio = divWidth / divHeight;
+
+            let status, percentageDifference;
+            if (divAspectRatio > givenAspectRatio) {
+                status = "wider";
+                percentageDifference = Math.abs(divAspectRatio / givenAspectRatio - 1) * 50;
+            } else {
+                status = "taller";
+                percentageDifference = Math.abs(givenAspectRatio / divAspectRatio - 1) * 50;
+            }
+
+            console.log(`The div is ${status} than the given aspect ratio (${givenAspectRatio}/${divAspectRatio}).`);
+            console.log(`Percentage difference in the non-matching direction: ${percentageDifference.toFixed(2)}%`);
+            return divAspectRatio > givenAspectRatio ? [percentageDifference, 0] : [0, percentageDifference];
+        }
+
+        // Function to zoom into a specific quadrant of the video or reset
         function zoom(quadrant) {
             const video = document.getElementById('kittenVideo');
             let transform = '';
+            let [x, y] = computePercentageDifference();
+            x = -x; y = -y;
 
             switch (quadrant) {
                 case 'top-left':
-                    transform = 'translate(0, 0)';
+                    transform = `translate(${x}%, ${y}%)`;
                     break;
                 case 'top-right':
-                    transform = 'translate(-50%, 0)';
+                    transform = `translate(${-50 + x}%, ${y}%)`;
                     break;
                 case 'bottom-left':
-                    transform = 'translate(0, -50%)';
+                    transform = `translate(${x}%, ${-50 + y}%)`;
                     break;
                 case 'bottom-right':
-                    transform = 'translate(-50%, -50%)';
+                    transform = `translate(${-50 + x}%, ${-50 + y}%)`;
                     break;
                 case 'reset':
                     transform = 'translate(0, 0)';
