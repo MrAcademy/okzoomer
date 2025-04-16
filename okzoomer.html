@@ -69,7 +69,7 @@
         <button onclick="zoom('reset')">Reset</button>
     </div>
     <div id="videoContainer">
-        <iframe id="kittenVideo" src="https://www.youtube.com/embed/R7vrbiDi0Tc?autoplay=1" frameborder="0" allowfullscreen style="width: 100%; height: 100%;"></iframe>
+        <iframe id="kittenVideo" src="https://www.youtube.com/embed/6EdrTEnxbpc?autoplay=1" frameborder="0" allowfullscreen style="width: 100%; height: 100%;"></iframe>
     </div>
     <script>
     // Scaling factor
@@ -147,6 +147,20 @@
             video.style.height = `${scalingFactor * 100}%`;
         }
         video.style.transform = transform;
+    }
+    
+    function denormalize(v, min, max) { return min + (max - min) * v }
+    function morezoomiful(x,y,z) {
+      const video = document.getElementById('kittenVideo');
+      const [barWidth, barHeight, vidWidth, vidHeight, divWidth, divHeight] = computeSizes();
+      const xDiff = divWidth - vidWidth;
+      const yDiff = divHeight - vidHeight;
+      
+      xpos = denormalize(x, -barWidth, xDiff - barWidth);
+      ypos = denormalize(y, -barHeight, yDiff - barHeight);
+      video.style.width =  `${z * 100}%`;
+      video.style.height = `${z * 100}%`;
+      video.style.transform = `translate(${xpos}px, ${ypos}px)`;
     }
 
 </script>
