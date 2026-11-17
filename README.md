@@ -21,6 +21,34 @@ Hosted on GitHub Pages from this repo (`okzoomer.html`).
 
 The channel ID and timings are constants at the top of the `<script>` block.
 
+## Fullscreen
+
+The ⛶ button fullscreens the whole app, so the quadrant buttons and zoom keep
+working. (YouTube's own fullscreen button only enlarges the raw video and loses the
+zoom.) It hides itself where fullscreen isn't available, e.g. iPhone Safari or when
+framed without `allow="fullscreen"`.
+
+## Embedding (kitten.academy)
+
+`okzoomer.html?embed=1` switches to a light, compact theme that matches the
+Squarespace site. Paste this into a Squarespace **Embed block → Code Snippet**:
+
+```html
+<div style="position:relative;width:100%;padding-top:calc(56.25% + 40px);">
+  <iframe
+    src="https://mracademy.github.io/okzoomer/okzoomer.html?embed=1"
+    title="Kitten Academy Live Stream"
+    style="position:absolute;inset:0;width:100%;height:100%;border:0;"
+    allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+    allowfullscreen></iframe>
+</div>
+```
+
+The `+ 40px` is the button bar; on phones the buttons wrap to two rows, leaving thin
+black bars beside the video. The `allow` attribute is required for autoplay and the
+fullscreen button. A saved stream link is stored separately when embedded (browsers
+partition storage for framed sites).
+
 ## Run locally
 
 The YouTube IFrame API wants a real http origin, so don't open the file directly:
