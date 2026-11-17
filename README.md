@@ -41,3 +41,7 @@ GitHub Pages republishes automatically within a minute or two.
 - If the YouTube IFrame API script is blocked (some privacy extensions), the page
   falls back to a plain embed without the missing-stream detection.
 - Zoom offsets are pixel-based and are re-applied on window resize.
+- If the channel runs a second ("special") stream at the same time, YouTube's
+  channel embed picks one of them; we don't control which. Viewers can paste a
+  specific link into ⚙ settings if needed. (Deliberately kept simple; doing this
+  properly would need a server-side job listing live streams via the YouTube API.)
