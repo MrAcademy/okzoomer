@@ -1,0 +1,43 @@
+# OK Zoomer
+
+A single-page viewer for the Kitten Academy live stream. The cameras are laid out
+in four quadrants; the buttons zoom the embedded YouTube player so one quadrant
+fills the window.
+
+Hosted on GitHub Pages from this repo (`okzoomer.html`).
+
+## How the stream is chosen
+
+1. **Saved link** – if the viewer has saved a link via the ⚙ settings button, that
+   video is played. It is stored in the viewer's browser (`localStorage`, key
+   `okzoomer.customVideoId`) and nowhere else. "Use automatic" clears it.
+2. **Automatic (default)** – embeds `youtube.com/embed/live_stream?channel=<CHANNEL_ID>`,
+   which YouTube resolves to whatever the channel is currently live-streaming. So when
+   YouTube closes the stream and a new one starts, **no code change is needed**.
+3. If nothing is live (or the player errors / the stream ends), a friendly
+   "stream appears to be missing" message is shown and the page re-checks every
+   60 seconds. If a *saved* link stops working, the message offers to switch back
+   to automatic instead.
+
+The channel ID and timings are constants at the top of the `<script>` block.
+
+## Run locally
+
+The YouTube IFrame API wants a real http origin, so don't open the file directly:
+
+    python3 -m http.server 8000
+    # then open http://localhost:8000/okzoomer.html
+
+## Deploy
+
+    git push
+
+GitHub Pages republishes automatically within a minute or two.
+
+## Gotchas
+
+- When nothing is live, the channel embed reports the placeholder video id
+  `live_stream`; the page treats that as "missing".
+- If the YouTube IFrame API script is blocked (some privacy extensions), the page
+  falls back to a plain embed without the missing-stream detection.
+- Zoom offsets are pixel-based and are re-applied on window resize.
