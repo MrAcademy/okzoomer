@@ -91,6 +91,9 @@
             font-size: 14px;
         }
         #settingsPanel[hidden] { display: none; }
+        /* While settings are open, keep the cross-origin player from swallowing clicks
+           meant for the panel (Chromium can route them into the iframe). */
+        body.settings-open #kittenVideo { pointer-events: none; }
         #settingsPanel label { display: block; margin-bottom: 6px; }
         #settingsPanel input {
             box-sizing: border-box;
@@ -424,6 +427,7 @@
     function openSettings(open) {
         settingsPanel.hidden = !open;
         settingsButton.setAttribute('aria-expanded', String(open));
+        document.body.classList.toggle('settings-open', open);
         if (open) {
             const saved = getSavedVideoId();
             customUrl.value = saved ? `https://www.youtube.com/watch?v=${saved}` : '';
